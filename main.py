@@ -1,8 +1,8 @@
 import os
 import asyncio
 from aiohttp import web
-from hydrogram import Client, filters
-from hydrogram.types import Message
+from pyrogram import Client, filters
+from pyrogram.types import Message
 
 # Fetching credentials from Environment Variables
 API_ID = int(os.environ.get("API_ID"))
