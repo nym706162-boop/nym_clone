@@ -1,5 +1,6 @@
 import os
 import asyncio
+from aiohttp import web
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
@@ -7,6 +8,7 @@ from pyrogram.types import Message
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 STRING_SESSION = os.environ.get("STRING_SESSION")
+PORT = int(os.environ.get("PORT", 8080))  # Render assigns a PORT dynamically
 
 userbot = Client(
     "my_userbot",
@@ -21,10 +23,7 @@ ORIGINAL_LAST_NAME = None
 ORIGINAL_ABOUT = None
 
 def anti_history_text(text: str) -> str:
-    """Inserts a Zero-Width Space (\u200b) between characters 
-
-    to bypass history tracking bots.
-    """
+    """Inserts a Zero-Width Space (\u200b) between characters to bypass history tracking bots."""
     if not text:
         return ""
     return "\u200b".join(list(text))
@@ -111,4 +110,21 @@ async def unclone(client: Client, message: Message):
     except Exception as e:
         await message.edit(f"❌ An error occurred: {str(e)}")
 
-userbot.run()
+# Health check server for Render Web Service
+async def handle_ping(request):
+    return web.Response(text="Userbot is running perfectly on Docker!")
+
+async def main():
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", PORT)
+    await site.start()
+
+    await userbot.start()
+    print("Userbot started successfully via Docker Container!")
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    asyncio.run(main())
