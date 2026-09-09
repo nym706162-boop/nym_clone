@@ -101,22 +101,26 @@ async def main():
     async def unclone(client: Client, message: Message):
         global ORIGINAL_NAME, ORIGINAL_LAST_NAME, ORIGINAL_ABOUT
         
-        if ORIGINAL_NAME is None:
-            await message.edit("⚠️ No saved profile state found to restore!")
-            return
-
         try:
-            # Restore original profile details
+            # Uses saved details or defaults to hardcoded values upon restart
+            first_name = ORIGINAL_NAME if ORIGINAL_NAME is not None else "˹ɴʏᴍ  ꭙ ᴍᴜꜱɪᴄ˼ ♪"
+            last_name = ORIGINAL_LAST_NAME if ORIGINAL_LAST_NAME is not None else ""
+            bio = ORIGINAL_ABOUT if ORIGINAL_ABOUT is not None else ""
+
+            # Restore profile text details
             await client.update_profile(
-                first_name=ORIGINAL_NAME,
-                last_name=ORIGINAL_LAST_NAME,
-                bio=ORIGINAL_ABOUT
+                first_name=first_name,
+                last_name=last_name,
+                bio=bio
             )
             
-            # Remove the latest added profile photo
-            async for photo in client.get_chat_photos("me"):
-                await client.delete_profile_photos(photo.file_id)
-                break
+            # Delete cloned profile photo (reveals original photo)
+            try:
+                async for photo in client.get_chat_photos("me"):
+                    await client.delete_profile_photos(photo.file_id)
+                    break
+            except Exception:
+                pass
                 
             await message.edit("✅ Account successfully restored to original state!")
             
