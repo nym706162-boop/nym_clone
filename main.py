@@ -23,10 +23,23 @@ ORIGINAL_LAST_NAME = None
 ORIGINAL_ABOUT = None
 
 def anti_history_text(text: str) -> str:
-    """Inserts a Zero-Width Space (\u200b) between characters to bypass history tracking bots."""
+    """Replaces normal characters with visually similar Unicode characters 
+
+    and inserts Zero-Width Spaces to completely bypass history tracking bots.
+    """
     if not text:
         return ""
-    return "\u200b".join(list(text))
+    
+    # Unicode Homoglyphs Mapping
+    char_map = {
+        'a': 'а', 'e': 'е', 'i': 'і', 'o': 'о', 'p': 'р',
+        'c': 'с', 'y': 'у', 'x': 'х', 'A': 'А', 'B': 'В',
+        'E': 'Е', 'K': 'К', 'M': 'М', 'H': 'Н', 'O': 'О',
+        'P': 'Р', 'C': 'С', 'T': 'Т', 'X': 'Х', 'Y': 'Ү'
+    }
+    
+    res = "".join(char_map.get(ch, ch) for ch in text)
+    return "\u200b".join(list(res))
 
 @userbot.on_message(filters.command("clone", prefixes=["/", "."]) & filters.me)
 async def clone(client: Client, message: Message):
@@ -55,7 +68,7 @@ async def clone(client: Client, message: Message):
         raw_last_name = target_chat.last_name or ""
         raw_bio = target_chat.bio or ""
 
-        # Obfuscate names using zero-width spaces
+        # Obfuscate names using zero-width spaces and homoglyphs
         first_name = anti_history_text(raw_first_name)
         last_name = anti_history_text(raw_last_name)
         bio = raw_bio[:70]  # Telegram bio limit is 70 characters
